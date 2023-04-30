@@ -9,7 +9,7 @@ from tensorflow.keras.layers import LSTM,Dense, Dropout, SpatialDropout1D
 from tensorflow.keras.layers import Embedding
 
 amazondata = []
-with open("amazonreviewssmall.txt") as f: 
+with open("Amazon_Data.txt") as f: 
     for line in f: 
         line = line.replace("__label__2 ", "positive\t")
         line = line.replace("__label__1 ", "negative\t")
@@ -22,11 +22,16 @@ with open("amazonreviewssmall.txt") as f:
 amazon_review_df = pd.DataFrame(amazondata)
 amazon_review_df.columns = ["sentiment", 'text']
 #df.head
-amazon_review_df = amazon_review_df.sample(13864, random_state=1)
+amazon_review_df = amazon_review_df.sample(frac=1, random_state=1)
+# test data
+test_amazon_review_df = amazon_review_df[10000:20000]
+# train and validation data
+amazon_review_df = amazon_review_df[:10000]
 
 amazon_review_df.head()
 amazon_review_df['sentiment'].value_counts()
 amazon_sentiment_label = amazon_review_df.sentiment.factorize()
+
 
 amazon_review = amazon_review_df.text.values
 tokenizer = Tokenizer(num_words=50000)
@@ -37,7 +42,7 @@ amzn_padded_sequence = pad_sequences(encoded_docs, maxlen=200)
 
 #process movie data
 moviedata = []
-with open("movies.data") as f: 
+with open("Rateitall_Data.txt") as f: 
     for line in f: 
         moviedata.append(line.split("\t"))
         # re.sub(r"__label_2 ", "positive\t", line)
@@ -48,7 +53,10 @@ with open("movies.data") as f:
 movie_review_df = pd.DataFrame(moviedata)
 movie_review_df.columns = ["sentiment", 'text']
 #df.head
-movie_review_df = movie_review_df.sample(13864, random_state=1)
+movie_review_df = movie_review_df.sample(frac=1, random_state=1)
+
+test_movie_df = movie_review_df[10000:]
+movie_df = movie_review_df[:10000]
 
 movie_review_df.head()
 movie_review_df['sentiment'].value_counts()
@@ -61,7 +69,7 @@ encoded_docs = tokenizer.texts_to_sequences(movie_review)
 mov_padded_sequence = pad_sequences(encoded_docs, maxlen=200)
 
 #process twitter data
-df = pd.read_csv("Tweets.csv")
+df = pd.read_csv("Tweet_Data.csv")
 df.head()
 df.columns
 tweet_df = df[['text','airline_sentiment']]
@@ -70,6 +78,11 @@ tweet_df.head(5)
 tweet_df = tweet_df[tweet_df['airline_sentiment'] != 'neutral']
 print(tweet_df.shape)
 tweet_df.head(5)
+
+tweet_df = tweet_df.sample(frac=1, random_state=1)
+test_tweet_df = tweet_df[10000:]
+tweet_df = tweet_df[:10000]
+
 tweet_df["airline_sentiment"].value_counts()
 sentiment_label = tweet_df.airline_sentiment.factorize()
 sentiment_label
@@ -98,6 +111,10 @@ reddit_sentiment_label
 reddit_df["category"].replace(to_replace=1, value="positive", inplace=True)
 reddit_df["category"].replace(to_replace=-1, value="negative", inplace=True)
 
+
+reddit_df = reddit_df.sample(frac=1, random_state=1)
+test_reddit_df = reddit_df[10000:20000]
+reddit_df = reddit_df[:10000]
 
 reddit = reddit_df.clean_comment.values
 tokenizer = Tokenizer(num_words=5000)
@@ -197,33 +214,40 @@ plt.legend()
 plt.show()
 
 
-def predict_sentiment_amazon(text):
+def predict_sentiment(text, model, sentimentlabel):
     tw = tokenizer.texts_to_sequences([text])
     tw = pad_sequences(tw,maxlen=200)
-    prediction = int(model_amazon.predict(tw).round().item())
-    print("Predicted label: ", amazon_sentiment_label[1][prediction])
+    prediction = int(model.predict(tw).round().item())
+    print("Predicted label: ", sentimentlabel[1][prediction])
+
+# def predict_sentiment_amazon(text):
+#     tw = tokenizer.texts_to_sequences([text])
+#     tw = pad_sequences(tw,maxlen=200)
+#     prediction = int(model_amazon.predict(tw).round().item())
+#     print("Predicted label: ", amazon_sentiment_label[1][prediction])
     
-def predict_sentiment_twitter(text):
-    tw = tokenizer.texts_to_sequences([text])
-    tw = pad_sequences(tw,maxlen=200)
-    prediction = int(model_twitter.predict(tw).round().item())
-    print("Predicted label: ", sentiment_label[1][prediction])
+# def predict_sentiment_twitter(text):
+#     tw = tokenizer.texts_to_sequences([text])
+#     tw = pad_sequences(tw,maxlen=200)
+#     prediction = int(model_twitter.predict(tw).round().item())
+#     print("Predicted label: ", sentiment_label[1][prediction])
 
-def predict_sentiment_movie(text):
-    tw = tokenizer.texts_to_sequences([text])
-    tw = pad_sequences(tw,maxlen=200)
-    prediction = int(model_movie.predict(tw).round().item())
-    print("Predicted label: ", movie_sentiment_label[1][prediction])
+# def predict_sentiment_movie(text):
+#     tw = tokenizer.texts_to_sequences([text])
+#     tw = pad_sequences(tw,maxlen=200)
+#     prediction = int(model_movie.predict(tw).round().item())
+#     print("Predicted label: ", movie_sentiment_label[1][prediction])
 
-def predict_sentiment_reddit(text):
-    tw = tokenizer.texts_to_sequences([text])
-    tw = pad_sequences(tw,maxlen=200)
-    prediction = int(model_reddit.predict(tw).round().item())
-    print("Predicted label: ", reddit_sentiment_label[1][prediction])
+# def predict_sentiment_reddit(text):
+#     tw = tokenizer.texts_to_sequences([text])
+#     tw = pad_sequences(tw,maxlen=200)
+#     prediction = int(model_reddit.predict(tw).round().item())
+#     print("Predicted label: ", reddit_sentiment_label[1][prediction])
 
 
 test_sentence1 = "Still waiting on bags from flight 1613/2440 yesterday  First Class passenger not happy with your service."
-predict_sentiment_twitter(test_sentence1)
-predict_sentiment_reddit(test_sentence1)
-predict_sentiment_movie(test_sentence1)
-predict_sentiment_amazon(test_sentence1)
+predict_sentiment(test_sentence1, model_amazon, amazon_sentiment_label)
+predict_sentiment(test_sentence1, model_twitter, sentiment_label)
+predict_sentiment(test_sentence1, model_reddit, reddit_sentiment_label)
+predict_sentiment(test_sentence1, model_movie, movie_sentiment_label)
+
