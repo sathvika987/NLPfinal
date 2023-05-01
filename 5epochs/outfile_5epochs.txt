@@ -1,0 +1,25 @@
+accuracy for models trained on their own dataset 
+twitter: 0.9110966904607398
+amazon: 0.8526
+movie: 0.9394409937888198
+reddit: 0.5938
+
+ accuracy for different models testing on twitter dataset 
+reddit: 0.618429591174562
+movie: 0.3880597014925373
+amazon: 0.2336145360155743
+
+ accuracy for different models testing on amazon dataset 
+reddit: 0.5206
+movie: 0.7552
+twitter: 0.3312
+
+ accuracy for different models on movie dataset 
+reddit: 0.6635610766045549
+amazon: 0.880175983436853
+twitter: 0.385351966873706
+
+ accuracy for different models testing on reddit dataset 
+movie: 0.6698
+amazon: 0.6082
+twitter: 0.507
